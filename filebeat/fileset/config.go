@@ -57,9 +57,10 @@ func NewFilesetConfig(cfg *common.Config) (*FilesetConfig, error) {
 	return &fcfg, nil
 }
 
-// mergePathDefaults returns a copy of c containing the path variables that must
+// mergepathdefaults returns a copy of c containing the path variables that must
 // be available for variable expansion in module configuration (e.g. it enables
 // the use of ${path.config} in module config).
+//mergePathDefaults 返回c的副本，其中包含必须在module配置中用于变量扩展的path变量（例如，它允许在模块配置中使用{path.config}）。
 func mergePathDefaults(c *common.Config) (*common.Config, error) {
 	defaults := common.MustNewConfigFrom(map[string]interface{}{
 		"path": map[string]interface{}{

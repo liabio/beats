@@ -270,11 +270,13 @@ func (fb *Filebeat) loadModulesML(b *beat.Beat, kibanaConfig *common.Config) err
 		config := cfgfile.DefaultDynamicConfig
 		fb.config.ConfigModules.Unpack(&config)
 
+		//把enable和disable的modules都找出来分开
 		modulesManager, err := cfgfile.NewGlobManager(config.Path, ".yml", ".disabled")
 		if err != nil {
 			return errors.Wrap(err, "initialization error")
 		}
 
+		//遍历enable的modules
 		for _, file := range modulesManager.ListEnabled() {
 			confs, err := cfgfile.LoadList(file.Path)
 			if err != nil {

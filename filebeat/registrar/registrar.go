@@ -99,6 +99,7 @@ func (r *Registrar) GetStates() []file.State {
 
 // loadStates fetches the previous reading state from the configure RegistryFile file
 // The default file is `registry` in the data path.
+//loadStates从configure RegistryFile文件中获取先前的读取状态。数据路径中的默认文件为“ registry”。
 func (r *Registrar) loadStates() error {
 	states, err := readStatesFrom(r.store)
 	if err != nil {
@@ -106,6 +107,7 @@ func (r *Registrar) loadStates() error {
 	}
 
 	r.states.SetStates(states)
+	//States Loaded from registrar: 19
 	r.log.Infof("States Loaded from registrar: %+v", len(states))
 
 	return nil
@@ -113,6 +115,7 @@ func (r *Registrar) loadStates() error {
 
 func (r *Registrar) Start() error {
 	// Load the previous log file locations now, for use in input
+	//立即加载以前的日志文件位置，以供输入
 	err := r.loadStates()
 	if err != nil {
 		return fmt.Errorf("error loading state: %v", err)
@@ -129,7 +132,9 @@ func (r *Registrar) Start() error {
 
 // Stop stops the registry. It waits until Run function finished.
 func (r *Registrar) Stop() {
+	//Stopping Registrar
 	r.log.Info("Stopping Registrar")
+	// Registrar stopped
 	defer r.log.Info("Registrar stopped")
 
 	close(r.done)
@@ -163,6 +168,7 @@ func (r *Registrar) Run() {
 	for {
 		select {
 		case <-r.done:
+			// Ending Registrar
 			r.log.Info("Ending Registrar")
 			return
 

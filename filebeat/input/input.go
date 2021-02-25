@@ -133,6 +133,7 @@ func (p *Runner) Run() {
 	for {
 		select {
 		case <-p.done:
+			//input ticker stopped
 			logp.Info("input ticker stopped")
 			return
 		case <-time.After(p.config.ScanFrequency):

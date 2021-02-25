@@ -46,7 +46,9 @@ func NewForwarder(outlet Outlet) *Forwarder {
 
 // Send updates the input state and sends the event to the spooler
 // All state updates done by the input itself are synchronous to make sure no states are overwritten
+//发送更新输入状态并将事件发送到假脱机程序由输入本身完成的所有状态更新都是同步的，以确保不会覆盖任何状态
 func (f *Forwarder) Send(event beat.Event) error {
+	//调用Outlet接口的OnEvent发送data，elastic\beats\filebeat\channel\outlet.go实现了这个接口
 	ok := f.Outlet.OnEvent(event)
 	if !ok {
 		logp.Info("Input outlet closed")

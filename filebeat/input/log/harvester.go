@@ -181,6 +181,7 @@ func (h *Harvester) ID() uuid.UUID {
 }
 
 // Setup opens the file handler and creates the reader for the harvester
+// 安装程序打开文件处理程序并创建收割机的读取器
 func (h *Harvester) Setup() error {
 	err := h.open()
 	if err != nil {
@@ -233,6 +234,7 @@ func (h *Harvester) updateCurrentSize() error {
 }
 
 // Run start the harvester and reads files line by line and sends events to the defined output
+//运行启动收割机并逐行读取文件并将事件发送到定义的输出
 func (h *Harvester) Run() error {
 	// Allow for some cleanup on termination
 	if h.onTerminate != nil {
@@ -299,6 +301,7 @@ func (h *Harvester) Run() error {
 		}
 	}(h.state.Source)
 
+	// Harvester started for file: /var/log/messages
 	logp.Info("Harvester started for file: %s", h.state.Source)
 
 	h.doneWg.Add(1)
@@ -313,7 +316,7 @@ func (h *Harvester) Run() error {
 			return nil
 		default:
 		}
-
+		//读取日志
 		message, err := h.reader.Next()
 		if err != nil {
 			switch err {
@@ -328,6 +331,7 @@ func (h *Harvester) Run() error {
 			case ErrClosed:
 				logp.Info("Reader was closed: %s. Closing.", h.state.Source)
 			case io.EOF:
+				//End of file reached: /var/log/messages. Closing because close_eof is enabled.
 				logp.Info("End of file reached: %s. Closing because close_eof is enabled.", h.state.Source)
 			case ErrInactive:
 				logp.Info("File is inactive: %s. Closing because close_inactive of %v reached.", h.state.Source, h.config.CloseInactive)
@@ -349,6 +353,7 @@ func (h *Harvester) Run() error {
 		state.Offset += int64(message.Bytes)
 
 		// Stop harvester in case of an error
+		//发生错误则停止
 		if !h.onMessage(forwarder, state, message, startingOffset) {
 			return nil
 		}
@@ -463,7 +468,7 @@ func (h *Harvester) onMessage(
 		}
 		fields["message"] = text
 	}
-
+	//发送日志
 	err := forwarder.Send(beat.Event{
 		Timestamp: timestamp,
 		Fields:    fields,
@@ -645,6 +650,11 @@ func (h *Harvester) cleanup() {
 //
 // log_file implements io.Reader interface and encode reader is an adapter for io.Reader to
 // reader.Reader also handling file encodings. All other readers implement reader.Reader
+//newLogFileReader创建一个新的读取器来读取日志文件，它创建了一系列读取器，如下所示：
+//limit->（（multiline -> timeout）-> strip_newline-> json->encode-> line-> log_file
+//左侧的每个读取器，包含右侧的阅读器，并调用`Next（）`以获取更多数据。在所有阅读器的基础上，log_file阅读器。这意味着数据以相反的方向流动：
+//log_file->line->encode-> json-> strip_newline->（timeout -> multiline）-> limit
+//log_file实现io.Reader接口，编码reader是io的适配器阅读器到阅读器。阅读器还处理文件编码。所有其他阅读器都实现reader.Reader
 func (h *Harvester) newLogFileReader() (reader.Reader, error) {
 	var r reader.Reader
 	var err error
@@ -691,6 +701,7 @@ func (h *Harvester) newLogFileReader() (reader.Reader, error) {
 
 	r = readfile.NewStripNewline(r, h.config.LineTerminator)
 
+	//input中是否配置多行，multiline.type等配置
 	if h.config.Multiline != nil {
 		r, err = multiline.New(r, "\n", h.config.MaxBytes, h.config.Multiline)
 		if err != nil {

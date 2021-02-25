@@ -76,10 +76,11 @@ func (c *client) PublishAll(events []beat.Event) {
 func (c *client) Publish(e beat.Event) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-
+	//这里
 	c.publish(e)
 }
 
+//这里
 func (c *client) publish(e beat.Event) {
 	var (
 		event   = &e
@@ -95,6 +96,8 @@ func (c *client) publish(e beat.Event) {
 		return
 	}
 
+	//publish方法即发送日志的方法，如果需要在发送前改造日志格式，可在这里添加代码
+	//processor处理日志
 	if c.processors != nil {
 		var err error
 

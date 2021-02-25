@@ -86,6 +86,7 @@ func (p *addCloudMetadata) init() {
 	p.initOnce.Do(func() {
 		result := p.fetchMetadata()
 		if result == nil {
+			// add_cloud_metadata: hosting provider type not detected.
 			p.logger.Info("add_cloud_metadata: hosting provider type not detected.")
 			return
 		}

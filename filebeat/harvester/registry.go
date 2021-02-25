@@ -93,6 +93,7 @@ func (r *Registry) Start(h Harvester) error {
 			r.wg.Done()
 		}()
 		// Starts harvester and picks the right type. In case type is not set, set it to default (log)
+		//启动收割机并选择正确的类型。如果未设置类型，则将其设置为默认值（日志）
 		err := h.Run()
 		if err != nil {
 			logp.Err("Error running input: %v", err)

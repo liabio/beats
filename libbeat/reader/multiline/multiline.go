@@ -32,8 +32,10 @@ func New(
 	config *Config,
 ) (reader.Reader, error) {
 	if config.Type == patternMode {
+		//multiline.type为pattern
 		return newMultilinePatternReader(r, separator, maxBytes, config)
 	} else if config.Type == countMode {
+		//multiline.type为count
 		return newMultilineCountReader(r, separator, maxBytes, config)
 	}
 	return nil, fmt.Errorf("unknown multiline type %d", config.Type)

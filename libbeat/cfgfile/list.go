@@ -125,7 +125,7 @@ func (r *RunnerList) Stop() {
 	if len(r.runners) == 0 {
 		return
 	}
-
+	//Stopping 1 runners ...
 	r.logger.Infof("Stopping %v runners ...", len(r.runners))
 
 	wg := sync.WaitGroup{}

@@ -54,7 +54,8 @@ func (o *outlet) OnEvent(event beat.Event) bool {
 	if !o.isOpen.Load() {
 		return false
 	}
-
+	//通过client.Publish发送数据，client也是一个接口
+	//filebeat中client使用的是elastic\beats\libbeat\publisher\pipeline\client.go的client对象
 	o.client.Publish(event)
 
 	// Note: race condition on shutdown:

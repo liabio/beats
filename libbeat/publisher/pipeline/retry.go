@@ -216,10 +216,12 @@ func (r *retryer) checkConsumerBlock(numOutputs, numBatches int) bool {
 		}
 		r.logger.Info("  done")
 	} else {
+		// retryer: send unwait signal to consumer
 		r.logger.Info("retryer: send unwait signal to consumer")
 		if r.consumer != nil {
 			r.consumer.sigUnWait()
 		}
+		//  done
 		r.logger.Info("  done")
 	}
 

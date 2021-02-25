@@ -33,6 +33,7 @@ func genRunCmd(settings instance.Settings, beatCreator beat.Creator) *cobra.Comm
 		Use:   "run",
 		Short: "Run " + name,
 		Run: func(cmd *cobra.Command, args []string) {
+			//重点这里启动
 			err := instance.Run(settings, beatCreator)
 			if err != nil {
 				os.Exit(1)

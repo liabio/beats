@@ -140,6 +140,7 @@ func (w *netClientWorker) run() {
 				batch.Cancelled()
 
 				if reconnectAttempts == 0 {
+					//示例： Connecting to kafka(kafka-xpxouub7-headless.kafka.svc.xke.test.xdf.cn:29092)
 					w.logger.Infof("Connecting to %v", w.client)
 				} else {
 					w.logger.Infof("Attempting to reconnect to %v with %d reconnect attempt(s)", w.client, reconnectAttempts)
@@ -148,6 +149,7 @@ func (w *netClientWorker) run() {
 				err := w.client.Connect()
 				connected = err == nil
 				if connected {
+					//示例： Connection to kafka(kafka-xpxouub7-headless.kafka.svc.xke.test.xdf.cn:29092) established
 					w.logger.Infof("Connection to %v established", w.client)
 					reconnectAttempts = 0
 				} else {

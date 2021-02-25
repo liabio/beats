@@ -59,6 +59,7 @@ func init() {
 
 // Load uses a Config object to create a new complete Pipeline instance with
 // configured queue and outputs.
+//Load使用Config对象创建具有配置的队列和输出的新的完整Pipeline实例。
 func Load(
 	beatInfo beat.Info,
 	monitors Monitors,
@@ -72,11 +73,12 @@ func Load(
 		WaitCloseMode: NoWaitOnClose,
 		Processors:    processors,
 	}
-
+	//LoadWithSettings与Load相同，但是它公开了一个包含处理器和WaitClose行为的Settings对象。
 	return LoadWithSettings(beatInfo, monitors, config, makeOutput, settings)
 }
 
 // LoadWithSettings is the same as Load, but it exposes a Settings object that includes processors and WaitClose behavior
+//LoadWithSettings与Load相同，但是它公开了一个包含处理器和WaitClose行为的Settings对象。
 func LoadWithSettings(
 	beatInfo beat.Info,
 	monitors Monitors,
@@ -109,7 +111,7 @@ func LoadWithSettings(
 	if err != nil {
 		return nil, err
 	}
-
+	// Beat name: JZJG-T-ZJJPTJZYZ-CDC-KAFKA-TEST-003
 	log.Infof("Beat name: %s", name)
 	return p, err
 }

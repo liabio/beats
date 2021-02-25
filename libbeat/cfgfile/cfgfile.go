@@ -132,12 +132,14 @@ func Read(out interface{}, path string) error {
 // Load reads the configuration from a YAML file structure. If path is empty
 // this method reads from the configuration file specified by the '-c' command
 // line flag.
+//加载从YAML文件结构读取配置。如果path为空，则此方法从'-c'命令行标志指定的配置文件中读取。
 func Load(path string, beatOverrides []ConditionalOverride) (*common.Config, error) {
 	var config *common.Config
 	var err error
 
 	cfgpath := GetPathConfig()
 
+	//没指定则使用configfiles指定的
 	if path == "" {
 		list := []string{}
 		for _, cfg := range configfiles.List() {
@@ -147,11 +149,14 @@ func Load(path string, beatOverrides []ConditionalOverride) (*common.Config, err
 				list = append(list, cfg)
 			}
 		}
+		//生成config配置
 		config, err = common.LoadFiles(list...)
 	} else {
+		//如果输入配置文件进入这个分支
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(cfgpath, path)
 		}
+		//生成config配置
 		config, err = common.LoadFile(path)
 	}
 	if err != nil {
@@ -177,6 +182,7 @@ func Load(path string, beatOverrides []ConditionalOverride) (*common.Config, err
 			return nil, err
 		}
 	} else {
+		//合并配置
 		config, err = common.MergeConfigs(
 			defaults,
 			config,

@@ -61,17 +61,20 @@ func newCrawler(
 }
 
 // Start starts the crawler with all inputs
+//使用所有输入启动搜寻器
 func (c *crawler) Start(
 	pipeline beat.PipelineConnector,
 	configInputs *common.Config,
 	configModules *common.Config,
 ) error {
 	log := c.log
-
+	// Loading Inputs: 5
 	log.Infof("Loading Inputs: %v", len(c.inputConfigs))
 
 	// Prospect the globs/paths given on the command line and launch harvesters
+	//展望命令行上给出的globs/paths并启动harvesters（收割机）
 	for _, inputConfig := range c.inputConfigs {
+		//根据每个配置的输入调用一次startInput
 		err := c.startInput(pipeline, inputConfig)
 		if err != nil {
 			return fmt.Errorf("starting input failed: %+v", err)
@@ -104,7 +107,7 @@ func (c *crawler) Start(
 			c.modulesReloader.Run(c.modulesFactory)
 		}()
 	}
-
+	//Loading and starting Inputs completed. Enabled inputs: 4
 	log.Infof("Loading and starting Inputs completed. Enabled inputs: %v", len(c.inputs))
 
 	return nil
@@ -138,13 +141,16 @@ func (c *crawler) startInput(
 
 	c.inputs[id] = runner
 
+	// Starting input (ID: 10431418456926919705)
 	c.log.Infof("Starting input (ID: %d)", id)
+	//启动
 	runner.Start()
 
 	return nil
 }
 
 func (c *crawler) Stop() {
+	//Stopping Crawler
 	logp.Info("Stopping Crawler")
 
 	asyncWaitStop := func(stop func()) {
@@ -154,12 +160,13 @@ func (c *crawler) Stop() {
 			stop()
 		}()
 	}
-
+	//Stopping 4 inputs
 	logp.Info("Stopping %v inputs", len(c.inputs))
 	// Stop inputs in parallel
 	for id, p := range c.inputs {
 		id, p := id, p
 		asyncWaitStop(func() {
+			//Stopping input: 10431418456926919705
 			c.log.Infof("Stopping input: %d", id)
 			p.Stop()
 		})
@@ -174,7 +181,7 @@ func (c *crawler) Stop() {
 	}
 
 	c.WaitForCompletion()
-
+	//Crawler stopped
 	logp.Info("Crawler stopped")
 }
 

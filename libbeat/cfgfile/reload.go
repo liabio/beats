@@ -161,6 +161,7 @@ func (rl *Reloader) Check(runnerFactory RunnerFactory) error {
 
 // Run runs the reloader
 func (rl *Reloader) Run(runnerFactory RunnerFactory) {
+	// Config reloader started
 	logp.Info("Config reloader started")
 
 	list := NewRunnerList("reload", runnerFactory, rl.pipeline)
@@ -221,9 +222,11 @@ func (rl *Reloader) Run(runnerFactory RunnerFactory) {
 
 		// Path loading is enabled but not reloading. Loads files only once and then stops.
 		if !rl.config.Reload.Enabled {
+			//Loading of config files completed.
 			logp.Info("Loading of config files completed.")
 			select {
 			case <-rl.done:
+				//Dynamic config reloader stopped
 				logp.Info("Dynamic config reloader stopped")
 				return
 			}

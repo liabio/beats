@@ -55,6 +55,7 @@ type BeatsRootCmd struct {
 // GenRootCmdWithSettings returns the root command to use for your beat. It take the
 // run command, which will be called if no args are given (for backwards compatibility),
 // and beat settings
+//GenRootCmdWithSettings返回用于您的beat的根命令。它使用run命令（如果未提供args（为了向后兼容），则将调用该命令）和beat设置
 func GenRootCmdWithSettings(beatCreator beat.Creator, settings instance.Settings) *BeatsRootCmd {
 	if settings.IndexPrefix == "" {
 		settings.IndexPrefix = settings.Name
@@ -70,7 +71,7 @@ func GenRootCmdWithSettings(beatCreator beat.Creator, settings instance.Settings
 	}
 
 	// must be updated prior to CLI flag handling.
-
+	//重点这里初始化
 	rootCmd.RunCmd = genRunCmd(settings, beatCreator)
 	rootCmd.ExportCmd = genExportCmd(settings)
 	rootCmd.TestCmd = genTestCmd(settings, beatCreator)

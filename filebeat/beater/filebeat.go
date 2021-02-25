@@ -173,13 +173,17 @@ func newBeater(b *beat.Beat, plugins PluginFactory, rawConfig *common.Config) (b
 }
 
 // setupPipelineLoaderCallback sets the callback function for loading pipelines during setup.
+//setupPipelineLoaderCallback设置用于在安装过程中加载管道的回调函数。
+//todo 只有elasticsearch output才加载pipelines？
 func (fb *Filebeat) setupPipelineLoaderCallback(b *beat.Beat) error {
 	if b.Config.Output.Name() != "elasticsearch" {
+		// Filebeat is unable to load the Ingest Node pipelines for the configured modules because the Elasticsearch output is not configured/enabled. If you have already loaded the Ingest Node pipelines or are using Logstash pipelines, you can ignore this warning.
 		logp.Warn(pipelinesWarning)
 		return nil
 	}
 
 	overwritePipelines := true
+	//重点
 	b.OverwritePipelinesCallback = func(esConfig *common.Config) error {
 		esClient, err := eslegclient.NewConnectedClient(esConfig)
 		if err != nil {
@@ -188,6 +192,7 @@ func (fb *Filebeat) setupPipelineLoaderCallback(b *beat.Beat) error {
 
 		// When running the subcommand setup, configuration from modules.d directories
 		// have to be loaded using cfg.Reloader. Otherwise those configurations are skipped.
+		//运行子命令安装程序时，必须使用cfg.Reloader从modules.d目录中加载配置。否则，将跳过那些配置。
 		pipelineLoaderFactory := newPipelineLoaderFactory(b.Config.Output.Config())
 		modulesFactory := fileset.NewSetupFactory(b.Info, pipelineLoaderFactory)
 		if fb.config.ConfigModules.Enabled() {
@@ -312,6 +317,8 @@ func isElasticsearchLoads(kibanaVersion common.Version) bool {
 }
 
 // Run allows the beater to be run as a beat.
+//运行beat, filebeat的实现
+//构造了registrar和crawler，用于监控文件状态变更和数据采集。然后
 func (fb *Filebeat) Run(b *beat.Beat) error {
 	var err error
 	config := fb.config
@@ -380,6 +387,7 @@ func (fb *Filebeat) Run(b *beat.Beat) error {
 	if b.Config.Output.Name() == "elasticsearch" {
 		pipelineLoaderFactory = newPipelineLoaderFactory(b.Config.Output.Config())
 	} else {
+		//Filebeat is unable to load the Ingest Node pipelines for the configured modules because the Elasticsearch output is not configured/enabled. If you have already loaded the Ingest Node pipelines or are using Logstash pipelines, you can ignore this warning.
 		logp.Warn(pipelinesWarning)
 	}
 
@@ -402,7 +410,7 @@ func (fb *Filebeat) Run(b *beat.Beat) error {
 		input.NewRunnerFactory(pipelineConnector, registrar, fb.done),
 	))
 	moduleLoader := fileset.NewFactory(inputLoader, b.Info, pipelineLoaderFactory, config.OverwritePipelines)
-
+	//构建crawler
 	crawler, err := newCrawler(inputLoader, moduleLoader, config.Inputs, fb.done, *once)
 	if err != nil {
 		logp.Err("Could not init crawler: %v", err)
@@ -437,6 +445,7 @@ func (fb *Filebeat) Run(b *beat.Beat) error {
 		logp.Debug("modules", "Existing Ingest pipelines will be updated")
 	}
 
+	//启动收集器
 	err = crawler.Start(fb.pipeline, config.ConfigInput, config.ConfigModules)
 	if err != nil {
 		crawler.Stop()
@@ -514,6 +523,7 @@ func (fb *Filebeat) Run(b *beat.Beat) error {
 
 // Stop is called on exit to stop the crawling, spooling and registration processes.
 func (fb *Filebeat) Stop() {
+	// Stopping filebeat
 	logp.Info("Stopping filebeat")
 
 	// Stop Filebeat

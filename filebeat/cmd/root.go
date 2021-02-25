@@ -46,6 +46,7 @@ func Filebeat(inputs beater.PluginFactory) *cmd.BeatsRootCmd {
 		HasDashboards: true,
 	}
 
+	//初始化
 	command := cmd.GenRootCmdWithSettings(beater.New(inputs), settings)
 	command.PersistentFlags().AddGoFlag(flag.CommandLine.Lookup("M"))
 	command.TestCmd.Flags().AddGoFlag(flag.CommandLine.Lookup("modules"))

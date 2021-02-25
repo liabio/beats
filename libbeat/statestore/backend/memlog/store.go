@@ -116,11 +116,14 @@ func openStore(log *logp.Logger, home string, mode os.FileMode, bufSz uint, igno
 		}
 	}
 
+	//Loading data file of '/neworiental/filebeat/filebeat-7.10.2-linux-x86_64/data/registry/filebeat' succeeded. Active transaction id=33258
 	logp.Info("Loading data file of '%v' succeeded. Active transaction id=%v", home, txid)
 
 	var entries uint
 	memstore := memstore{tbl}
 	txid, entries, err = loadLogFile(&memstore, txid, home)
+
+	//Finished loading transaction log file for '/neworiental/filebeat/filebeat-7.10.2-linux-x86_64/data/registry/filebeat'. Active transaction id=40734
 	logp.Info("Finished loading transaction log file for '%v'. Active transaction id=%v", home, txid)
 
 	if err != nil {

@@ -149,6 +149,7 @@ func LoadFile(path string) (*Config, error) {
 		}
 	}
 
+	//根据配置文件构造config对象
 	c, err := yaml.NewConfigWithFile(path, configOpts...)
 	if err != nil {
 		return nil, err

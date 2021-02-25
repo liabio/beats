@@ -154,6 +154,7 @@ func NewInput(
 		return nil, err
 	}
 
+	// Configured paths: [/neworiental/filebeat/kafka/server* /neworiental/filebeat/kafka/controller* /neworiental/filebeat/kafka/kafka-authorizer* /neworiental/filebeat/kafka/log-cleaner* /neworiental/filebeat/kafka/state-change*]
 	logp.Info("Configured paths: %v", p.config.Paths)
 
 	cleanupNeeded = false
@@ -271,10 +272,12 @@ func (p *Input) removeState(state file.State) {
 
 // getFiles returns all files which have to be harvested
 // All globs are expanded and then directory and excluded files are removed
+// getFiles返回所有必须收集的文件。扩展所有glob，然后目录和排除的文件被删除
 func (p *Input) getFiles() map[string]os.FileInfo {
 	paths := map[string]os.FileInfo{}
 
 	for _, path := range p.config.Paths {
+		//根据配置的路径path获取所有匹配到的文件全路径
 		matches, err := filepath.Glob(path)
 		if err != nil {
 			logp.Err("glob(%s) failed: %v", path, err)
@@ -451,10 +454,11 @@ func getKeys(paths map[string]os.FileInfo) []string {
 }
 
 // Scan starts a scanGlob for each provided path/glob
+//input开始根据配置的输入路径扫描所有符合的文件，并启动harvester
 func (p *Input) scan() {
 	var sortInfos []FileSortInfo
 	var files []string
-
+	//getFiles返回所有必须收集的文件
 	paths := p.getFiles()
 
 	var err error
@@ -510,6 +514,7 @@ func (p *Input) scan() {
 		// Decides if previous state exists
 		if isNewState {
 			logp.Debug("input", "Start harvester for new file: %s", newState.Source)
+			//启动Harvester
 			err := p.startHarvester(newState, 0)
 			if err == errHarvesterLimit {
 				logp.Debug("input", harvesterErrMsg, newState.Source, err)
@@ -687,6 +692,7 @@ func (p *Input) createHarvester(state file.State, onTerminate func()) (*Harveste
 
 // startHarvester starts a new harvester with the given offset
 // In case the HarvesterLimit is reached, an error is returned
+//startHarvester使用给定的偏移量启动新的收割机如果达到HarvesterLimit，则返回错误
 func (p *Input) startHarvester(state file.State, offset int64) error {
 	if p.numHarvesters.Inc() > p.config.HarvesterLimit && p.config.HarvesterLimit > 0 {
 		p.numHarvesters.Dec()

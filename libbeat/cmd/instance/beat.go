@@ -165,6 +165,7 @@ func Run(settings Settings, bt beat.Creator) error {
 					"panic", r, zap.Stack("stack"))
 			}
 		}()
+		//新建一个beat
 		b, err := NewBeat(name, idxPrefix, version)
 		if err != nil {
 			return err
@@ -185,7 +186,7 @@ func Run(settings Settings, bt beat.Creator) error {
 		beatRegistry := stateRegistry.NewRegistry("beat")
 		monitoring.NewString(beatRegistry, "name").Set(b.Info.Name)
 		monitoring.NewFunc(stateRegistry, "host", host.ReportInfo, monitoring.Report)
-
+		//在经过了初始化配置之后。进入launch
 		return b.launch(settings, bt)
 	}())
 }
@@ -243,6 +244,7 @@ func NewBeat(name, indexPrefix, v string) (*Beat, error) {
 }
 
 // InitWithSettings does initialization of things common to all actions (read confs, flags)
+//InitWithSettings初始化所有动作通用的事物（读取conf，标志）
 func (b *Beat) InitWithSettings(settings Settings) error {
 	err := b.handleFlags()
 	if err != nil {
@@ -294,8 +296,9 @@ func (b *Beat) createBeater(bt beat.Creator) (beat.Beater, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	//打印一些系统进程主机等信息
 	logSystemInfo(b.Info)
+	//Setup Beat: filebeat; Version: 7.10.2
 	logp.Info("Setup Beat: %s; Version: %s", b.Info.Beat, b.Info.Version)
 
 	err = b.registerESIndexManagement()
@@ -333,6 +336,7 @@ func (b *Beat) createBeater(bt beat.Creator) (beat.Beater, error) {
 			return nil, errors.New(msg)
 		}
 	}
+	//Load使用Config对象创建具有配置的队列和输出的新的完整Pipeline实例。
 	pipeline, err := pipeline.Load(b.Info,
 		pipeline.Monitors{
 			Metrics:   reg,
@@ -366,8 +370,9 @@ func (b *Beat) createBeater(bt beat.Creator) (beat.Beater, error) {
 
 func (b *Beat) launch(settings Settings, bt beat.Creator) error {
 	defer logp.Sync()
+	//示例： filebeat stopped.
 	defer logp.Info("%s stopped.", b.Info.Beat)
-
+	//InitWithSettings初始化所有动作通用的事物（读取conf，标志）
 	err := b.InitWithSettings(settings)
 	if err != nil {
 		return err
@@ -418,7 +423,7 @@ func (b *Beat) launch(settings Settings, bt beat.Creator) error {
 	if err = seccomp.LoadFilter(b.Config.Seccomp); err != nil {
 		return err
 	}
-
+	//创建beater
 	beater, err := b.createBeater(bt)
 	if err != nil {
 		return err
@@ -433,6 +438,7 @@ func (b *Beat) launch(settings Settings, bt beat.Creator) error {
 	}
 
 	if b.Config.MetricLogging == nil || b.Config.MetricLogging.Enabled() {
+		//metric上报
 		reporter, err := log.MakeReporter(b.Info, b.Config.MetricLogging)
 		if err != nil {
 			return err
@@ -451,13 +457,14 @@ func (b *Beat) launch(settings Settings, bt beat.Creator) error {
 	if err != nil {
 		return err
 	}
-
+	// filebeat start running.
 	logp.Info("%s start running.", b.Info.Beat)
 
 	// Launch config manager
 	b.Manager.Start(beater.Stop)
 	defer b.Manager.Stop()
 
+	//真正启动beat
 	return beater.Run(&b.Beat)
 }
 
@@ -641,6 +648,10 @@ func (b *Beat) configure(settings Settings) error {
 		return fmt.Errorf("error initializing logging: %v", err)
 	}
 
+	//Home path: [/neworiental/filebeat/filebeat-7.10.2-linux-x86_64]
+	//Config path: [/neworiental/filebeat/filebeat-7.10.2-linux-x86_64]
+	//Data path: [/neworiental/filebeat/filebeat-7.10.2-linux-x86_64/data]
+	//Logs path: [/neworiental/filebeat/filebeat-7.10.2-linux-x86_64/logs]
 	// log paths values to help with troubleshooting
 	logp.Info(paths.Paths.String())
 
@@ -978,6 +989,7 @@ func logSystemInfo(info beat.Info) {
 			"logs":   paths.Resolve(paths.Logs, ""),
 		},
 	}
+	// Beat info       {"system_info": {"beat": {"path": {"config": "/neworiental/filebeat/filebeat-7.10.2-linux-x86_64", "data": "/neworiental/filebeat/filebeat-7.10.2-linux-x86_64/data", "home": "/neworiental/filebeat/filebeat-7.10.2-linux-x86_64", "logs": "/neworiental/filebeat/filebeat-7.10.2-linux-x86_64/logs"}, "type": "filebeat", "uuid": "1f57cf31-e5e3-47bc-bc52-e501dc8346b4"}}}
 	log.Infow("Beat info", "beat", beat)
 
 	// Build
@@ -987,13 +999,17 @@ func logSystemInfo(info beat.Info) {
 		"version": info.Version,
 		"libbeat": version.GetDefaultVersion(),
 	}
+
+	// Build info      {"system_info": {"build": {"commit": "aacf9ecd9c494aa0908f61fbca82c906b16562a8", "libbeat": "7.10.2", "time": "2021-01-12T23:11:24.000Z", "version": "7.10.2"}}}
 	log.Infow("Build info", "build", build)
 
+	//Go runtime info {"system_info": {"go": {"os":"linux","arch":"amd64","max_procs":8,"version":"go1.14.12"}}}
 	// Go Runtime
 	log.Infow("Go runtime info", "go", sysinfo.Go())
 
 	// Host
 	if host, err := sysinfo.Host(); err == nil {
+		// Host info       {"system_info": {"host": {"architecture":"x86_64","boot_time":"2021-02-01T11:29:54+08:00","containerized":false,"name":"JZJG-T-ZJJPTJZYZ-CDC-KAFKA-TEST-003","ip":["127.0.0.1/8","::1/128","172.24.29.128/24","fe80::250:56ff:fe8e:c449/64"],"kernel_version":"3.10.0-514.6.1.el7.x86_64","mac":["00:50:56:8e:c4:49"],"os":{"family":"redhat","platform":"centos","name":"CentOS Linux","version":"7 (Core)","major":7,"minor":3,"patch":1611,"codename":"Core"},"timezone":"CST","timezone_offset_sec":28800,"id":"e19a3520cb9f4d43bf9b091f3df050c9"}}}
 		log.Infow("Host info", "host", host.Info())
 	}
 
@@ -1023,6 +1039,7 @@ func logSystemInfo(info beat.Info) {
 		}
 
 		if len(process) > 0 {
+			// Process info    {"system_info": {"process": {"capabilities": {"inheritable":null,"permitted":["chown","dac_override","dac_read_search","fowner","fsetid","kill","setgid","setuid","setpcap","linux_immutable","net_bind_service","net_broadcast","net_admin","net_raw","ipc_lock","ipc_owner","sys_module","sys_rawio","sys_chroot","sys_ptrace","sys_pacct","sys_admin","sys_boot","sys_nice","sys_resource","sys_time","sys_tty_config","mknod","lease","audit_write","audit_control","setfcap","mac_override","mac_admin","syslog","wake_alarm","block_suspend"],"effective":["chown","dac_override","dac_read_search","fowner","fsetid","kill","setgid","setuid","setpcap","linux_immutable","net_bind_service","net_broadcast","net_admin","net_raw","ipc_lock","ipc_owner","sys_module","sys_rawio","sys_chroot","sys_ptrace","sys_pacct","sys_admin","sys_boot","sys_nice","sys_resource","sys_time","sys_tty_config","mknod","lease","audit_write","audit_control","setfcap","mac_override","mac_admin","syslog","wake_alarm","block_suspend"],"bounding":["chown","dac_override","dac_read_search","fowner","fsetid","kill","setgid","setuid","setpcap","linux_immutable","net_bind_service","net_broadcast","net_admin","net_raw","ipc_lock","ipc_owner","sys_module","sys_rawio","sys_chroot","sys_ptrace","sys_pacct","sys_admin","sys_boot","sys_nice","sys_resource","sys_time","sys_tty_config","mknod","lease","audit_write","audit_control","setfcap","mac_override","mac_admin","syslog","wake_alarm","block_suspend"],"ambient":null}, "cwd": "/neworiental/filebeat/filebeat-7.10.2-linux-x86_64", "exe": "/neworiental/filebeat/filebeat-7.10.2-linux-x86_64/filebeat", "name": "filebeat", "pid": 26232, "ppid": 65726, "seccomp": {"mode":"disabled"}, "start_time": "2021-02-25T13:56:04.040+0800"}}}
 			log.Infow("Process info", "process", process)
 		}
 	}
